@@ -28,8 +28,8 @@ let g:m_project_exlore_command = ''
 let g:m_project_profiles = {}
 let g:m_project_current = ''
 let t:m_project_current = ''
-let g:m_project_project_on_tabpage = 0
-let g:m_project_jump_on_select = 0
+let g:m_project_project_on_tabpage = 1
+let g:m_project_jump_on_select = 1
 
 function! MProjGetCurrentProjName()
   if g:m_project_project_on_tabpage
@@ -111,6 +111,7 @@ function! MProjGetRootDir(...)
     endif
     let dirs = split(current_project_config['dir'], ',')
     let dir = dirs[0]
+    let dir = substitute(dir, "^[\"']\\(.*\\)[\"']", '\1', 'g')
     return dir
   endif
 endfunction
@@ -301,32 +302,35 @@ function! MProjDocGrepListCategory()
 endfunction
 command! MProjDocGrepListCategory :call MProjDocGrepListCategory()
 
-"function! Sbt(...)
-"  let proj_and_args = s:MProjArgs(a:000)
-"  let project_name = proj_and_args['project_name']
-"  let commands = proj_and_args['args']
-"  let current_project_config = g:m_project_profiles[project_name]
-"  let dir = '.'
-"  if has_key(current_project_config, 'dir')
-"    let dir = current_project_config['dir']
-"  end
-"  let s:_current_path = getcwd()
-"  try
-"    execute 'cd ' . dir
-"    let _old_makeprg = &makeprg
-"    let _old_efm = &efm
-"    let &makeprg='sbt ' . join(commands)
-"    set efm=%E\ %#[error]\ %f:%l:\ %m,%C\ %#[error]\ %p^,%-C%.%#,%Z,
-"           \%W\ %#[warn]\ %f:%l:\ %m,%C\ %#[warn]\ %p^,%-C%.%#,%Z,
-"           \%-G%.%#
-"    make
-"    let &makeprg = _old_makeprg
-"    let &efm = _old_efm
-"  finally
-"    execute 'cd ' . s:_current_path
-"  endtry 
-"endfunction
-"command! -nargs=+ Sbt :call Sbt(<f-args>)
+function! Sbt(...)
+  let proj_and_args = s:MProjArgs(a:000)
+  let project_name = proj_and_args['project_name']
+  let commands = proj_and_args['args']
+  let current_project_config = g:m_project_profiles[project_name]
+  let dir = '.'
+  if has_key(current_project_config, 'dir')
+    let dir = current_project_config['dir']
+  end
+  let s:_current_path = getcwd()
+  try
+    execute 'cd ' . dir
+    let _old_makeprg = &makeprg
+    let _old_efm = &efm
+    let &makeprg='sbt ' . join(commands)
+    set efm=%E\ %#[error]\ %f:%l:\ %m,%C\ %#[error]\ %p^,%-C%.%#,%Z,
+           \%W\ %#[warn]\ %f:%l:\ %m,%C\ %#[warn]\ %p^,%-C%.%#,%Z,
+           \%-G%.%#
+    make
+    let &makeprg = _old_makeprg
+    let &efm = _old_efm
+  finally
+    execute 'cd ' . s:_current_path
+  endtry 
+  if len(getqflist()) > 0
+    :QfList
+  endif
+endfunction
+command! -nargs=+ Sbt :call Sbt(<f-args>)
 
 function! MProjMaven(...)
   let project_name = MProjGetCurrentProjName()
