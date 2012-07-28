@@ -9,11 +9,11 @@ Install:
 Register project:
 
   ・Small Setting
-    :MProjSet test dir='/projects/test'
+    :MProjSet test dir="/projects/test"
     ... Set project root directory.
 
   ・Full Setting
-    :MProjSet test dir='/projects/test' ext='\.java$|\.rb' srcdir='/project/test/src' docdir='/project/test/doc'
+    :MProjSet test dir="/projects/test" ext="\.java$|\.rb" srcdir="/project/test/src" docdir="/project/test/doc"
     ... Set project root directory, file extention pattern, source directory and document directory.
 
 Select current project:
