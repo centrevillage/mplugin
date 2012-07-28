@@ -1,7 +1,10 @@
 ﻿[mplugin]
 
 Simple project management tool for vim.
-(require ruby runtime)
+This plugin is using the ruby script. 
+
+Install:
+  Copy doc and plugin direcoties to your vim plugin directory.
 
 Register project:
 
@@ -36,3 +39,29 @@ Find file in current project:
 Show current project in status line:
 
   :set statusline=%F%m%r%h%w\ %{MProjStatusLine()}
+
+Special Grep command:
+
+  :Grep -e "{filename-pattern}" {pattern} {directory}
+  
+  After called above command, [GrepResult] buffer will open.
+  In [GrepResult] buffer, Those command is enabled:
+
+  :{range}Substitute/{pattern}/{replaced}/{flag}
+  ... Substitute texts in [GrepResult] buffer.
+
+  :MGWrite
+  ... Write changed line to each grepped file.
+
+  :MGRepeat
+  ... Re-Grep with same input parameter.
+
+  :MGUpdate
+  ... Update lines in [GrepResult] buffer to latest file contents.
+
+  :MGWriteAndUpdate
+  ... Execute :MGWrite and :MGUpdate commands.
+
+  For more infomation, see doc/mgrep.jax.
+    (This is japanese document. I'm poor at english ... orz)
+  GG/FF commmand call this command internally.
