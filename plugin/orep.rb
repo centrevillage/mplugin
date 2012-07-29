@@ -20,6 +20,8 @@ offset_num = 0
 file = nil
 state = ""
 from_date = nil
+ignore_hidden_directory = true
+ignore_hidden_pattern = /(^\.)|(\/\.)/
 
 def d2time(date)
     Time.mktime(date.year, date.month, date.day)
@@ -46,6 +48,8 @@ begin
         is_flag_param = true
       when 'o'
         is_flag_param = true
+      when 'h'
+        ignore_hidden_directory = false
       when 'd'
         is_flag_param = true
       end
@@ -132,6 +136,9 @@ begin
   if search_filename_mode
     arr_in_path.each{|in_path|
       Find.find(in_path){|path|
+        if ignore_hidden_directory && path =~ ignore_hidden_pattern
+          next
+        end
         target_name = ""
         if !FileTest.directory?(path)
           base, target_name = File.split(path)
@@ -139,7 +146,7 @@ begin
           target_name = path.split(/\/|\\/).pop
         else 
           next
-            end
+        end
         if from_date && (File.mtime(path) > from_date)
             next
         end
@@ -158,6 +165,9 @@ begin
   else
     arr_in_path.each{|in_path|
       Find.find(in_path){|path|
+        if ignore_hidden_directory && path =~ ignore_hidden_pattern
+          next
+        end
         unless FileTest.directory?(path)
           if from_date && (File.mtime(path) > from_date)
             next
