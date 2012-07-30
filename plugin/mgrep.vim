@@ -25,6 +25,12 @@ if v:version < 700
 endif
 let g:loaded_mgrep = 1
 
+if has("win32") || has("win64")
+	let s:line_separator = "\\"
+else
+	let s:line_separator = "/"
+endif
+
 let g:mgrep_filename_pattern = "^\\([^?<>|\"*]\\+\\)$"
 let g:mgrep_line_pattern = "^\\t\\(\\d\\+\\)> \\(.*\\)$"
 let g:mgrep_line_pattern_linenum = "^\\t\\(\\d\\+\\)> "

@@ -21,12 +21,6 @@ if exists('g:loaded_m_vimutil') || &cp
 endif
 let g:loaded_m_vimutil = 1
 
-if has("win32") || has("win64")
-	let s:line_separator = "\\"
-else
-	let s:line_separator = "/"
-endif
-
 function! GetUnderCursorStr(pat, ...) 
     let offsetS = 0
     let offsetE = 0
