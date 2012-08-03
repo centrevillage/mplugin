@@ -54,8 +54,14 @@ let s:mgrep_edit_line = 0
 let s:mgrep_edit_buf_modified = 0
 let s:prev_bufnr = 0
 let g:mgrep_file_encoding = "utf8"
-let s:mgrep_prg = 'ruby -S ' . expand('<sfile>:p:h') . '/orep.rb'
-let g:mgrep_binayfile_pattern = '\.doc$\|\.xls$\|\.bmp$\|\.png$\|\.jpg\|\.jpeg$\|\.gif$\|\.wav$\|\.aiff$\|\.ogg\|\.mp3$\|\.mp4\|\.avi$\|\.flv$\|\.git\>\|\.svn\>\|\.ttf$\|\.dll$\|\.obj$\|\.jar$\|\.class$\|\.bson$\|\.blend\d*$'
+let s:mgrep_prg = 'ruby ' . expand('<sfile>:p:h') . '/orep.rb'
+let g:mgrep_binayfile_pattern = '\.7z$\|\.rar$\|\.tar$\|\.tar.bz$\|\.tar.gz$\|\.zip$\|\.doc$\|\.xls$\|\.bmp$\|\.png$\|\.jpg\|\.jpeg$\|\.gif$\|\.wav$\|\.aiff$\|\.ogg\|\.mp3$\|\.mp4\|\.avi$\|\.flv$\|\.git\>\|\.svn\>\|\.ttf$\|\.dll$\|\.obj$\|\.jar$\|\.class$\|\.bson$\|\.blend\d*$'
+
+if has("win32") || has("win64")
+	let s:line_separator = "\\"
+else
+	let s:line_separator = "/"
+endif
 
 let s:debug = 0
 

@@ -23,6 +23,8 @@ let g:loaded_m_proj = 1
 
 let g:m_project_maven_opts = ''
 let g:m_project_mvn_error_format = '\[ERROR\] \(.\+\):\[\(\d\+\),\(\d\+\)\] \(.*\)'
+let g:m_project_mvn_error_continue_line = '\[ERROR\] \(.\+\)'
+let g:m_project_mvn_error_end_format = '\[ERROR\]\s*$'
 let g:m_project_exlore_command = ''
 
 let g:m_project_profiles = {}
@@ -132,9 +134,14 @@ function! MProjList()
   let list = ['project list --']
   let projects = []
   let index = 1
+  let current_project_name = MProjGetCurrentProjName()
   for project_name in keys(g:m_project_profiles)
     let project_config = g:m_project_profiles[project_name]
-    let line = '[' . index  . '] ' . project_name . ' ('
+    let mark = ''
+    if current_project_name == project_name
+      let mark = '*'
+    endif
+    let line = '[' . index . mark  . '] ' . project_name . ' ('
     let i = 0
     for [k, v] in items(project_config)
       if i > 0
@@ -359,14 +366,28 @@ function! MProjMaven(...)
 
   " make qflist
   call setqflist([])
+
+  let match = 0
+  let text = ''
   for item in result_lines
+    if match > 0
+        if item =~ g:m_project_mvn_error_end_format
+            call setqflist([{'filename': filename , 'lnum': lnum, 'col': col, 'text': text}], 'a')
+            let match = 0
+        else
+            let matched = matchlist(item, g:m_project_mvn_error_continue_line)
+            if len(matched) != 0
+                let text .= matched[1]
+            endif
+        endif
+    endif
     let matched = matchlist(item, g:m_project_mvn_error_format)
     if len(matched) != 0 
+      let match = 1
       let filename = matched[1]
       let lnum = matched[2]
       let col = matched[3]
       let text = matched[4]
-      call setqflist([{'filename': filename , 'lnum': lnum, 'col': col, 'text': text}], 'a')
     endif
   endfor
 

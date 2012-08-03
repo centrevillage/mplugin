@@ -21,7 +21,8 @@ file = nil
 state = ""
 from_date = nil
 ignore_hidden_directory = true
-ignore_hidden_pattern = /(^\.)|(\/\.)/
+ignore_hidden_pattern = /(^\.\w)|(\/\.\w)/
+binary_file_pattern = /\.7z$|\.rar$|\.tar$|\.tar.bz$|\.tar.gz$|\.zip$|\.doc$|\.xls$|\.bmp$|\.png$|\.jpg|\.jpeg$|\.gif$|\.wav$|\.aiff$|\.ogg|\.mp3$|\.mp4|\.avi$|\.flv$|\.git\>|\.svn\>|\.ttf$|\.dll$|\.obj$|\.jar$|\.class$|\.bson$|\.blend\d*$/
 
 def d2time(date)
     Time.mktime(date.year, date.month, date.day)
@@ -175,6 +176,10 @@ begin
           base, name = File.split(path)
           puts "base: #{path} name : #{base}" if debug
           if !expand_pattern.to_s.empty? && !(name =~ expand_pattern)
+            next
+          end
+          if path =~ binary_file_pattern
+            puts "<Skip: #{path}>"
             next
           end
           file = File.new(path)
