@@ -56,8 +56,14 @@ function! MProjSet(...)
       endif
       for eq in a:000[1:]
         let [name, val] = split(eq, '=')
-        if name == 'ext' || name == 'dir' || name == 'docdir' || name == 'srcdir'
+        if name == 'ext' || name == 'dir' || name == 'docdir' || name == 'srcdir' || name == 'ignore'
           let g:m_project_profiles[project_name][name] = val
+        elseif name =~ '^cmd:\(\w\+\)'
+"          let cmdname = substitute(name, '^cmd:\(\w\+\)', '\1', 'g')
+          "let cmdstate = substitute(val, "^[\"']\\(.*\\)[\"']", '\1', 'g')
+          let cmdname = name
+          let cmdstate = val
+          let g:m_project_profiles[project_name][cmdname] = cmdstate
         else
           throw '[' . name . '] propery is not exsists.'
         endif
@@ -144,12 +150,14 @@ function! MProjList()
     let line = '[' . index . mark  . '] ' . project_name . ' ('
     let i = 0
     for [k, v] in items(project_config)
+      if k !~ '^cmd:'
       if i > 0
         let line .= ' '
         let first = 0
       endif
       let line .= k . "=" . v
       let i += 1
+      endif
     endfor
     let line .= ')'
     call add(projects, project_name)
@@ -205,6 +213,10 @@ function! FindFile(...)
     if has_key(current_project_config, 'ext')
       let ext = '-e ' . current_project_config['ext']
     endif
+    let ignore = ''
+    if has_key(current_project_config, 'ignore')
+      let ignore = '-i ' . current_project_config['ignore']
+    endif
     let dir = '.'
     if has_key(current_project_config, 'dir')
       let dirs = split(current_project_config['dir'], ',')
@@ -212,7 +224,7 @@ function! FindFile(...)
     end
     let directjump_old = g:mgrep_opt_directjump
     let g:mgrep_opt_directjump = 1
-    let command = 'Grep -f ' . ext . ' ' . findword . ' ' . dir
+    let command = 'Grep -f ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
 "    call confirm(command)
     execute command
     let g:mgrep_opt_directjump = directjump_old
@@ -235,6 +247,10 @@ function! MProjGrep(...)
   if has_key(current_project_config, 'ext')
     let ext = '-e ' . current_project_config['ext']
   endif
+  let ignore = ''
+  if has_key(current_project_config, 'ignore')
+    let ignore = '-i ' . current_project_config['ignore']
+  endif
   let dir = '.'
   if has_key(current_project_config, 'dir')
     let dirs = split(current_project_config['dir'], ',')
@@ -242,7 +258,7 @@ function! MProjGrep(...)
   end
   let directjump_old = g:mgrep_opt_directjump
   let g:mgrep_opt_directjump = 1
-  execute 'Grep ' . ext . ' ' . findword . ' ' . dir
+  execute 'Grep ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
   let g:mgrep_opt_directjump = directjump_old
 endfunction
 command! -nargs=+ GG :call MProjGrep(<f-args>)
@@ -416,6 +432,67 @@ function! MProjMaven(...)
 "  echo result
 endfunction
 command! -nargs=+ Mvn :call MProjMaven(<f-args>)
+
+function! MProjCmd(...)
+  let project_name = MProjGetCurrentProjName()
+  let cmd = ''
+  if has_key(g:m_project_profiles, a:1)
+    let project_name = a:1
+    if a:0 > 1
+      let cmd = 'cmd:' . a:000[1]
+    endif
+  else
+    let cmd = 'cmd:' . a:000[0]
+  endif
+  if len(cmd) == 0
+    echoerr 'Cmd:[error] invalid arguments.'
+    return
+  endif
+  if !has_key(g:m_project_profiles, project_name)
+    echoerr 'Cmd:[error] "' . project_name . '" project is not exists.'
+    return
+  endif
+  let current_project_config = g:m_project_profiles[project_name]
+  if !has_key(current_project_config, cmd)
+    echoerr 'Cmd:[error] "' . cmd . '" command is not exists.'
+    return
+  endif
+  if !has_key(current_project_config, 'dir')
+    echoerr 'Cmd:[error] "' . project_name . '] project has not "dir" property.'
+    return
+  endif
+  let command = current_project_config[cmd]
+  let dirs = split(current_project_config['dir'], ',')
+  let dir = dirs[0]
+  let _dir = getcwd()
+  execute 'cd ' . dir
+  let result = iconv(system(command), &termencoding, &encoding)
+  let result_lines = split(result, "\n")
+  execute 'cd ' . _dir
+
+  if has("win32")
+    execute "silent! sp [CmdResult]"
+  else
+    execute "silent! sp \[CmdResult\]"
+  endif
+  setlocal modifiable
+  setlocal nonumber
+  setlocal foldcolumn=0
+  setlocal nofoldenable
+  setlocal buftype=nofile
+  setlocal noswapfile
+"  setlocal nowrap
+  setlocal bufhidden=hide
+  setlocal isf-=:
+  setlocal isf-=[
+  setlocal isf-=]
+  set noinsertmode
+  normal! ggVGd
+  call setline(1, result_lines)
+  setlocal nomodifiable
+"  echo result
+endfunction
+command! -nargs=+ CC :call MProjCmd(<f-args>)
 
 nnoremap FF :call FindFile(GetWordStr())<cr>
 nnoremap <Leader>GG :call MProjGrep(GetWordStr())<cr>

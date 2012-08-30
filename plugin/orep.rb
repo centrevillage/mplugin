@@ -23,6 +23,7 @@ from_date = nil
 ignore_hidden_directory = true
 ignore_hidden_pattern = /(^\.\w)|(\/\.\w)/
 binary_file_pattern = /\.7z$|\.rar$|\.tar$|\.tar.bz$|\.tar.gz$|\.zip$|\.doc$|\.xls$|\.bmp$|\.png$|\.jpg|\.jpeg$|\.gif$|\.wav$|\.aiff$|\.ogg|\.mp3$|\.mp4|\.avi$|\.flv$|\.git\>|\.svn\>|\.ttf$|\.dll$|\.obj$|\.jar$|\.class$|\.bson$|\.blend\d*$/
+ignore_path_pattern = nil
 
 def d2time(date)
     Time.mktime(date.year, date.month, date.day)
@@ -44,6 +45,8 @@ begin
       when 'F'
         search_filename_mode = 2
       when 'e'
+        is_flag_param = true
+      when 'i'
         is_flag_param = true
       when 't'
         is_flag_param = true
@@ -89,6 +92,8 @@ begin
             else
               expand_pattern = elem
             end
+          when 'i'
+            ignore_path_pattern = Regexp.new(elem)
           when 'o'
             offset_num = elem.to_i
           when 'd'
@@ -137,7 +142,7 @@ begin
   if search_filename_mode
     arr_in_path.each{|in_path|
       Find.find(in_path){|path|
-        if ignore_hidden_directory && path =~ ignore_hidden_pattern
+        if (ignore_hidden_directory && path =~ ignore_hidden_pattern) || (ignore_path_pattern && path =~ ignore_path_pattern)
           next
         end
         target_name = ""
@@ -166,7 +171,7 @@ begin
   else
     arr_in_path.each{|in_path|
       Find.find(in_path){|path|
-        if ignore_hidden_directory && path =~ ignore_hidden_pattern
+        if (ignore_hidden_directory && path =~ ignore_hidden_pattern) || (ignore_path_pattern && path =~ ignore_path_pattern)
           next
         end
         unless FileTest.directory?(path)

@@ -58,12 +58,6 @@ let s:mgrep_plugin_path = expand('<sfile>:p:h')
 let s:mgrep_prg = 'ruby ' . s:mgrep_plugin_path . '/orep.rb'
 let g:mgrep_binayfile_pattern = '\.7z$\|\.rar$\|\.tar$\|\.tar.bz$\|\.tar.gz$\|\.zip$\|\.doc$\|\.xls$\|\.bmp$\|\.png$\|\.jpg\|\.jpeg$\|\.gif$\|\.wav$\|\.aiff$\|\.ogg\|\.mp3$\|\.mp4\|\.avi$\|\.flv$\|\.git\>\|\.svn\>\|\.ttf$\|\.dll$\|\.obj$\|\.jar$\|\.class$\|\.bson$\|\.blend\d*$'
 
-if has("win32") || has("win64")
-	let s:line_separator = "\\"
-else
-	let s:line_separator = "/"
-endif
-
 let s:debug = 0
 
 function! MGSetRubyPath(rubyPrg)
