@@ -252,7 +252,6 @@ function! FindFile(...)
     let g:mgrep_opt_directjump = 1
     let command = 'Grep ' . join(options, ' ') . ' ' . option . ' ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
 "    call confirm(command)
-    echo ' command= '  . command
     execute command
     let g:mgrep_opt_directjump = directjump_old
   catch /.*/
