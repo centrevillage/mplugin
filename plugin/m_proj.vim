@@ -2,7 +2,7 @@ scriptencoding utf8
 " Vim Utility ==================================================================
 " vertion  : 1.0
 " created  : 2011/08/12 
-" updated  : 2012/07/28
+" updated  : 2014/02/13
 " license    : MIT License 
 " license {{{
 "   The MIT License (MIT)
@@ -182,12 +182,33 @@ endfunction
 function! s:MProjArgs(list)
   let project_name = MProjGetCurrentProjName()
   let args = a:list
-  if len(a:list) > 1
-    if has_key(g:m_project_profiles, a:list[0])
-      let project_name = a:list[0]
-      let args = a:list[1:]
+  let options = []
+  if len(args) > 0
+    let new_args = []
+    let has_param = 0
+    for word in args
+      if word =~ '^-'
+        call add(options, word)
+        if word =~ '^-[metoi]$'
+          let has_param = 1
+        endif
+      else
+        if has_param == 1
+          let options[-1] .= ' ' . word 
+          let has_param = 0
+        else
+          call add(new_args, word)
+        end
+      end
+    endfor
+    let args = new_args
+  end
+  if len(args) > 1
+    if has_key(g:m_project_profiles, args[0])
+      let project_name = args[0]
+      let args = args[1:]
     else
-      throw '[error] "' . a:list[0] . '" project is not exists.'
+      throw '[error] "' . args[0] . '" project is not exists.'
     end
   else
     if empty(project_name)
@@ -195,7 +216,7 @@ function! s:MProjArgs(list)
       return
     endif
   endif
-  return {'project_name': project_name, 'args': args}
+  return {'project_name': project_name, 'args': args, 'options': options}
 endfunction
 
 function! FindFile(...)
@@ -207,15 +228,20 @@ function! FindFile(...)
     end
     let project_name = proj_and_args['project_name']
     let arg = proj_and_args['args']
+    let options = proj_and_args['options']
     let findword = arg[0]
     let ext = ''
     let current_project_config = g:m_project_profiles[project_name]
-    if has_key(current_project_config, 'ext')
+    if has_key(current_project_config, 'ext') && match(options, '-e') == -1  && index(options, '-F') == -1
       let ext = '-e ' . current_project_config['ext']
     endif
     let ignore = ''
-    if has_key(current_project_config, 'ignore')
+    if has_key(current_project_config, 'ignore') && match(options, '-i') == -1
       let ignore = '-i ' . current_project_config['ignore']
+    endif
+    let option = ''
+    if index(options, '-f') == -1 && index(options, '-F') == -1
+      let option = '-f'
     endif
     let dir = '.'
     if has_key(current_project_config, 'dir')
@@ -224,8 +250,9 @@ function! FindFile(...)
     end
     let directjump_old = g:mgrep_opt_directjump
     let g:mgrep_opt_directjump = 1
-    let command = 'Grep -f ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
+    let command = 'Grep ' . join(options, ' ') . ' ' . option . ' ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
 "    call confirm(command)
+    echo ' command= '  . command
     execute command
     let g:mgrep_opt_directjump = directjump_old
   catch /.*/
@@ -233,6 +260,7 @@ function! FindFile(...)
   endtry
 endfunction
 command! -nargs=+ FF :call FindFile(<f-args>)
+command! -nargs=+ FFF :call FindFile('-F', <f-args>)
 
 function! MProjGrep(...)
   let proj_and_args = s:MProjArgs(a:000)
@@ -242,13 +270,14 @@ function! MProjGrep(...)
     end
   let project_name = proj_and_args['project_name']
   let findword = proj_and_args['args'][0]
+  let options = proj_and_args['options']
   let ext = ''
   let current_project_config = g:m_project_profiles[project_name]
-  if has_key(current_project_config, 'ext')
+  if has_key(current_project_config, 'ext') && match(options, '-e') == -1
     let ext = '-e ' . current_project_config['ext']
   endif
   let ignore = ''
-  if has_key(current_project_config, 'ignore')
+  if has_key(current_project_config, 'ignore') && match(options, '-i') == -1
     let ignore = '-i ' . current_project_config['ignore']
   endif
   let dir = '.'
@@ -258,7 +287,7 @@ function! MProjGrep(...)
   end
   let directjump_old = g:mgrep_opt_directjump
   let g:mgrep_opt_directjump = 1
-  execute 'Grep ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
+  execute 'Grep ' . join(options, ' ') . ' ' . ext . ' ' . ignore . ' ' . findword . ' ' . dir
   let g:mgrep_opt_directjump = directjump_old
 endfunction
 command! -nargs=+ GG :call MProjGrep(<f-args>)
@@ -329,6 +358,7 @@ function! Sbt(...)
   let proj_and_args = s:MProjArgs(a:000)
   let project_name = proj_and_args['project_name']
   let commands = proj_and_args['args']
+  let options = proj_and_args['options']
   let current_project_config = g:m_project_profiles[project_name]
   let dir = '.'
   if has_key(current_project_config, 'dir')
@@ -339,7 +369,7 @@ function! Sbt(...)
     execute 'cd ' . dir
     let _old_makeprg = &makeprg
     let _old_efm = &efm
-    let &makeprg='sbt ' . join(commands)
+    let &makeprg='sbt ' . join(options, ' ') . ' ' . join(commands)
     set efm=%E\ %#[error]\ %f:%l:\ %m,%C\ %#[error]\ %p^,%-C%.%#,%Z,
            \%W\ %#[warn]\ %f:%l:\ %m,%C\ %#[warn]\ %p^,%-C%.%#,%Z,
            \%-G%.%#
