@@ -1186,7 +1186,7 @@ function! <SID>InitResult()
 	setlocal bufhidden=hide
 
     let s:_current_path = getcwd()
-    if !empty(w:mgrep_current_path)
+    if exists("w:mgrep_current_path") && !empty(w:mgrep_current_path)
         execute 'cd ' . w:mgrep_current_path
     endif
 endfunction
