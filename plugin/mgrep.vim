@@ -533,6 +533,24 @@ function! <SID>FormatVimGrepResult(list, pat)
 	return result_lines
 endfunction
 
+function! <SID>FormatAGGrepResult(list, pat)
+	let result_lines = []
+  call add(result_lines, 'search pattern: ' . a:pat)
+  let cur_fname = ""
+	for item in a:list
+    let parsed = split(item, ':')
+    let file_name = parsed[0]
+    let line_no = parsed[1]
+    let text = join(parsed[2:], ':')
+		if cur_fname != file_name
+			let cur_fname = file_name
+      call add(result_lines, file_name)
+		endif
+    call add(result_lines, "\t".(line_no)."> ".(text))
+	endfor
+	return result_lines
+endfunction
+
 function! <SID>VimGrepFuncInner(type, arg1, args)
     if !&autowriteall && &modified
         echo "Current buffer is not saved!"
@@ -611,11 +629,69 @@ function! <SID>VimGrepFuncInner(type, arg1, args)
 	let @" = @0
 endfunction
 
+function! <SID>AGGrepFuncInner(arg1, args)
+    if !&autowriteall && &modified
+        echo "Current buffer is not saved!"
+        return
+    endif
+
+    let results = []
+    if len(a:args) > 0
+        let w:file_pat = join(a:args, ' ')
+    else
+        let w:file_pat = ""
+    endif
+    let w:text_pat = a:arg1
+    let w:mgrep_args = w:text_pat." ".w:file_pat
+    try
+      let grep_cmd = 'ag '.w:mgrep_args
+      let std_out = system(grep_cmd)
+    catch
+        " Ignore no maching
+    endtry
+    let resultlist = split(std_out, "\<NL>")
+
+    if !g:mgrep_opt_disp_0result
+        if (!len(resultlist))
+            echo "No results."
+            echo "(AGGrep " . a:arg1 . ' ' . w:file_pat . ")"
+            return
+        endif
+    endif
+    let results = <SID>FormatAGGrepResult(resultlist, w:text_pat)
+
+    if bufname("%") != "[GrepResult]"
+      let s:prev_bufnr = bufnr("%")
+    endif
+    if s:prev_bufnr == 0
+      let s:prev_bufnr = bufnr("%")
+    endif
+
+    if &autowriteall
+        execute "update"
+    endif
+
+	let w:mgrep_current_path = getcwd()
+	call <SID>CreateBuf()
+  let s:mgrep_commnad_num = 5 " 5: AGGrepFunc
+	let s:mgrep_showing_status = 0
+	let s:mgrep_line_status = ""
+	let w:mgrep_cursor_pos = 0
+	call <SID>DisplayBuf(results)
+	call <SID>CreateAllStatus()
+	call <SID>CreateTimeStamp()
+	call <SID>SetupSyntax()
+	let @" = @0
+endfunction
+
 function! <SID>VimGrepFunc(arg1, ...)
     :call <SID>VimGrepFuncInner('grep', a:arg1, a:000)
 endfunction
 function! <SID>VimFindFunc(arg1)
     :call <SID>VimGrepFuncInner('file', a:arg1, [])
+endfunction
+function! <SID>AGGrepFunc(arg1, ...)
+    :call <SID>AGGrepFuncInner(a:arg1, a:000)
 endfunction
 
 function! <SID>RepeatGrep()
@@ -627,6 +703,8 @@ function! <SID>RepeatGrep()
 		call <SID>VimFindFunc(w:file_pat)
 	elseif s:mgrep_commnad_num == 4 " Qf
 		call <SID>QfFunc()
+	elseif s:mgrep_commnad_num == 5 " AGGrep
+		call <SID>AGGrepFunc(w:text_pat, w:file_pat)
 	endif
 endfunction
 
@@ -1484,4 +1562,5 @@ endfunction
 command! -nargs=+ -complete=file Grep call <SID>GrepFunc(<f-args>)
 command! -nargs=+ -complete=file VimGrep call <SID>VimGrepFunc(<f-args>)
 command! -nargs=+ -complete=file VimFind call <SID>VimFindFunc(<f-args>)
+command! -nargs=+ -complete=file AGGrep call <SID>AGGrepFunc(<f-args>)
 command! QfList call <SID>QfFunc()
