@@ -34,7 +34,7 @@ endif
 let g:mgrep_filename_pattern = "^\\([^?<>|\"*]\\+\\)$"
 let g:mgrep_line_pattern = "^\\t\\(\\d\\+\\)> \\(.*\\)$"
 let g:mgrep_line_pattern_linenum = "^\\t\\(\\d\\+\\)> "
-let g:mgrep_ignore_pattern = "^\\(<.*>\\)\\|\\(search.*:.*\\)$"
+let g:mgrep_ignore_pattern = "\\(^<.*>\\)\\|\\(^search.*:.*\\)$"
 let g:mgrep_opt_disp_0result = 0
 " 0: use all mapping
 " 1: not use update mapping
