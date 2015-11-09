@@ -22,7 +22,7 @@ state = ""
 from_date = nil
 ignore_hidden_directory = true
 ignore_hidden_pattern = /(^\.\w)|(\/\.\w)/
-binary_file_pattern = /\.7z$|\.rar$|\.tar$|\.tar.bz$|\.tar.gz$|\.zip$|\.doc$|\.xls$|\.bmp$|\.png$|\.jpg|\.jpeg$|\.gif$|\.wav$|\.aiff$|\.ogg|\.mp3$|\.mp4|\.avi$|\.flv$|\.git\>|\.svn\>|\.ttf$|\.dll$|\.obj$|\.jar$|\.class$|\.bson$|\.blend\d*$/
+binary_file_pattern = /\.bin$|\.o$|\.7z$|\.rar$|\.tar$|\.tar.bz$|\.tar.gz$|\.zip$|\.doc$|\.xls$|\.bmp$|\.png$|\.jpg|\.jpeg$|\.gif$|\.wav$|\.aiff$|\.ogg|\.mp3$|\.mp4|\.avi$|\.flv$|\.git\>|\.svn\>|\.ttf$|\.dll$|\.obj$|\.jar$|\.class$|\.bson$|\.blend\d*$/
 ignore_path_pattern = nil
 
 def d2time(date)
