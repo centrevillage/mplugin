@@ -193,6 +193,7 @@ begin
             arr_hit_buf = Array.new
             is_on_range = false
             file.each{|line|
+              line.scrub!
               if is_on_range
                 arr_hit_buf.push "\t#{file.lineno}> #{line}"
                 hit_cnt += 1
@@ -217,6 +218,7 @@ begin
           elsif offset_num > 0
             offset_cnt = 0
             file.each{|line|
+              line.scrub!
               if offset_cnt > 0
                 puts "\t#{file.lineno}> #{line}"
                 offset_cnt -= 1
@@ -241,6 +243,7 @@ begin
             }
           else
             file.each{|line|
+              line.scrub!
               if line =~ search_pattern
                 if is_first
                   #puts "#{path}-->"
